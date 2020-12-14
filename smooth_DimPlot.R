@@ -49,7 +49,7 @@ smooth_DimPlot <- function(sobj,
                      log2ratio=log2ratio)
     
     pl <- ggplot(df,aes(x=x,y=y,colour=log2ratio)) +
-      geom_point(size=pt.size) + 
+      geom_point(size=pt.size, shape=16) + 
       scale_colour_gradient2(low=col.low,mid='gray',high=col.high) + 
       theme_bw()+
       theme(axis.ticks=element_blank(), panel.grid.minor=element_blank())+
@@ -66,7 +66,7 @@ smooth_DimPlot <- function(sobj,
                      dens=dens)
     
     pl <- ggplot(df,aes(x=x,y=y,colour=dens)) +
-      geom_point(size=pt.size) + 
+      geom_point(size=pt.size, shape=16) + 
       scale_colour_gradient(low=colors.use[1],high=colors.use[2]) +
       theme_bw()+
       theme(axis.ticks=element_blank(), panel.grid.minor=element_blank())+
