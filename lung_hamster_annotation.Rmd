@@ -1,0 +1,189 @@
+---
+title: "20201015 hamster annotation"
+output: 
+  html_document:
+    df_print: paged
+    code_folding: hide
+---
+  
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE, cache=TRUE, cache.lazy=FALSE, message=FALSE, warning=FALSE)
+library(Seurat)
+library(dplyr)
+library(ggplot2)
+library(igraph)
+library(Matrix)
+library(tidyr)
+```
+
+```{r get_data}
+hamster <- readRDS('./seu_lung_combined_mtfilt.integrated.rds')
+```
+
+```{r show}
+DimPlot(hamster,group.by='orig.ident',label=TRUE,repel=TRUE)
+
+hamster <- FindNeighbors(hamster,verbose=FALSE, assay='integrated') %>%
+  FindClusters(resolution=1.0, verbose=FALSE, assay='integrated')
+
+DimPlot(hamster,label=TRUE,repel=TRUE,label.size=3)
+```
+
+load the mouse droplet lung data from [tabula muris](https://figshare.com/articles/dataset/Robject_files_for_tissues_processed_by_Seurat/5821263)
+
+```{r load_mouse, fig.width=8,fig.height=4}
+#load(file.path(path,'tabula_muris_droplet_Lung_seurat_tiss.Robj'))
+#mouse <- UpdateSeuratObject(tiss)
+#saveRDS(mouse,file.path(path,'tabula_muris_droplet_lung_seurat_v3.rds'))
+path <- './'
+tabula_muris <- readRDS(file.path(path,'tabula_muris_droplet_lung_seurat_v3.rds'))
+
+DimPlot(tabula_muris, group.by='cell_ontology_class', label=TRUE, label.size=3,repel=TRUE)
+```
+
+use Seurat's TransferData workflow to predict labels in hamster
+
+```{r predict_tabula_muris,fig.width=8,fig.height=8}
+anchors <- FindTransferAnchors(reference = tabula_muris, query = hamster, dims = 1:20,
+                               features = intersect(row.names(tabula_muris@assays$RNA@scale.data),
+                                                    row.names(hamster@assays$integrated@scale.data)))
+pred <- TransferData(anchorset = anchors, refdata = tabula_muris$cell_ontology_class, dims = 1:20)
+colnames(pred) <- paste0(colnames(pred),'.tabula_muris')
+hamster <- AddMetaData(hamster, metadata=pred)
+hamster@meta.data %>%
+  dplyr::group_by(seurat_clusters,predicted.id.tabula_muris) %>%
+  dplyr::summarise(n=n()) %>%
+  dplyr::mutate(frac=round(n/sum(n),2)) %>%
+  dplyr::filter(frac > .1)
+CombinePlots(plots=list(DimPlot(hamster, group.by='predicted.id.tabula_muris', label=TRUE, repel=TRUE, label.size=2),
+                        FeaturePlot(hamster,'prediction.score.max.tabula_muris', label=TRUE, label.size=2)),ncol=1)
+```
+
+load the human lung cell atlas data by Travaglini et al. (bioRxiv https://doi.org/10.1101/742320) and convert human to mouse gene names using biomaRt
+
+```{r load_human, fig.width=5,fig.height=4.5}
+# travaglini <- readRDS('./droplet_normal_lung_seurat_ntiss10x.P2.anno.20191002.RC4.seuratV3.rds')
+# 
+# library("biomaRt")
+# human <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+# mouse <- useMart("ensembl", dataset = "mmusculus_gene_ensembl")
+# 
+# travaglini_genes <- row.names(travaglini@assays$RNA@counts)
+# human_mouse <- getLDS(attributes = c("mgi_symbol"), filters = "mgi_symbol", 
+#                       values = travaglini_genes , mart = mouse,
+#                       attributesL = c("hgnc_symbol"), 
+#                       martL = human, uniqueRows=T)
+# human_mouse$n <- 1
+# 
+# mask <- sparseMatrix(as.integer(as.factor(human_mouse$HGNC.symbol)), 
+#                      as.integer(as.factor(human_mouse$MGI.symbol)), 
+#                      x = human_mouse$n)
+# 
+# colnames(mask) <- levels(as.factor(human_mouse$MGI.symbol))
+# rownames(mask) <- levels(as.factor(human_mouse$HGNC.symbol))
+# 
+# gg <- intersect(travaglini_genes,row.names(mask))
+# 
+# dge_mouse <- t(mask[gg,]) %*% travaglini@assays$RNA@counts[gg,] 
+# 
+# travaglini_mouse <- CreateSeuratObject(dge_mouse,assay='RNA',meta.data=travaglini@meta.data) %>%
+#   NormalizeData(normalization.method='LogNormalize',scale.factor=10000,verbose=FALSE) %>%
+#   ScaleData(verbose=FALSE)
+# travaglini_mouse[["tsne"]] <- travaglini[['tsne']]
+# saveRDS(travaglini_mouse,'./travaglini_mouse.rds')
+travaglini_mouse <- readRDS('./travaglini_mouse.rds')
+
+DimPlot(travaglini_mouse, group.by='free_annotation', label=TRUE, label.size=2.5, repel=TRUE) + NoLegend()
+```
+
+use Seurat's TransferData workflow to predict labels in hamster
+
+```{r predict_travaglini,fig.width=8,fig.height=8}
+anchors <- FindTransferAnchors(reference = travaglini_mouse, query = hamster, dims = 1:20,
+                               features = intersect(row.names(travaglini_mouse@assays$RNA@scale.data),
+                                                    row.names(hamster@assays$integrated@scale.data)))
+pred <- TransferData(anchorset = anchors, refdata = travaglini_mouse$free_annotation, dims = 1:20)
+colnames(pred) <- paste0(colnames(pred),'.travaglini')
+hamster <- AddMetaData(hamster, metadata=pred)
+hamster@meta.data %>%
+  dplyr::group_by(seurat_clusters,predicted.id.travaglini) %>%
+  dplyr::summarise(n=n()) %>%
+  dplyr::mutate(frac=round(n/sum(n),2)) %>%
+  dplyr::filter(frac > .1)
+CombinePlots(plots=list(DimPlot(hamster, group.by='predicted.id.travaglini', label=TRUE, repel=TRUE, label.size=2),
+                        FeaturePlot(hamster,'prediction.score.max.travaglini', label=TRUE, label.size=2)),ncol=1)
+```
+
+```{r plot_genes,fig.width=8,fig.height=8}
+DefaultAssay(hamster) <- 'SCT'
+FeaturePlot(hamster, c('C1qb','Marco','Pglyrp1','S100a8'), label=TRUE, order=TRUE,label.size=2)
+```
+
+show the previous annotation
+
+```{r show_previous,fig.width=8,fig.height=4}
+prev <- readRDS('20201007_hamster_annotated.rds')
+prev$prev.cluster <- Idents(prev)
+hamster <- AddMetaData(hamster, prev@meta.data[,'prev.cluster',drop=FALSE])
+hamster@meta.data %>%
+  dplyr::filter(!is.na(prev.cluster)) %>%
+  dplyr::group_by(seurat_clusters,prev.cluster) %>%
+  dplyr::summarise(n=n()) %>%
+  dplyr::mutate(frac=round(n/sum(n),2)) %>%
+  dplyr::filter(frac > .1)
+CombinePlots(plots=list(DimPlot(hamster, group.by='prev.cluster', label=TRUE, repel=TRUE, label.size=3) + NoLegend(),
+                        DimPlot(hamster, label=TRUE, repel=TRUE, label.size=3) + NoLegend()), ncol=2)
+```
+
+```{r rename,fig.width=10,fig.height=5}
+hamster <- RenameIdents(hamster, 
+                     '0'='T cells',
+                     '1'='macrophages',
+                     '2'='B cells',
+                     '3'='AT2',
+                     '4'='macrophages',
+                     '5'='monocytes',
+                     '6'='capillary',
+                     '7'='NK cells',
+                     '8'='monocytes',
+                     '9'='monocytes 2',
+                     '10'='monocytes',
+                     '11'='T cells',
+                     '12'='macrophages',
+                     '13'='interstitial macrophages',
+                     '14'='fibroblasts',
+                     '15'='proliferating T/NK',
+                     '16'='monocytes',
+                     '17'='B cells',
+                     '18'='AT1',
+                     '19'='capillary aerocyte',
+                     '20'='vein',
+                     '21'='T cells',
+                     '22'='smooth muscle',
+                     '23'='monocytes',
+                     '24'='neutrophils',
+                     '25'='plasmacytoid dendritic',
+                     '26'='proliferating macrophages',
+                     '27'='neutrophils',
+                     '28'='NK cells',
+                     '29'='ciliated',
+                     '30'='T/NK', ###
+                     '31'='unclear 1',
+                     '32'='unclear 2',
+                     '33'='interstitial macrophages 2',
+                     '34'='fibroblasts',
+                     '35'='lymphatic',
+                     '36'='unclear 3',
+                     '37'='unclear 4',
+                     '38'='macrophages')
+
+DimPlot(hamster,label=TRUE, label.size=2)
+```
+
+```{r save_data}
+saveRDS(hamster,'./lung_hamster_annotated.rds')
+```
+
+```{r sessionInfo}
+sessionInfo()
+```
