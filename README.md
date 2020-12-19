@@ -20,7 +20,7 @@ Processing cell ranger output: hamster_merging.R contains the code to create the
 
 Annotation of lung cell types from tabula muris / Travaglini et al.: lung_hamster_annotation.Rmd
 
-Processing and figures for Fig. 1 and Fig. S3: hamster_scRNAseq.R contains the  code to annote the cell types and create the panels in Fig. 1 and Fig. S3. For convenience, the working object ma_int.rds can be downloaded via http://www.mdc-berlin.de/singlecell-SARSCoV2
+Processing and figures for Fig. 1 and Fig. S3: hamster_scRNAseq.R contains the code to annote the cell types and create the panels in Fig. 1 and Fig. S3. The Seurat object ma_int.rds can be downloaded via http://www.mdc-berlin.de/singlecell-SARSCoV2
 
-Pseudobulk analysis: 
+Pseudobulk analysis: hamster_scRNAseq_pseudobulkDE.R contains the code for the differential expression dotblots in Fig. 3, 4, 5, S5, S7. The Seurat object ma_int.rds as well as the data table pseudobulk.txt and the enrichment tables (KEGG and process) can be downloaded via http://www.mdc-berlin.de/singlecell-SARSCoV2
 
