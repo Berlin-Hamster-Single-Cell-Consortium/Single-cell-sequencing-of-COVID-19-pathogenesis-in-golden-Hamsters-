@@ -11,13 +11,16 @@ Infection Scheme Figure was created with Biorender.com
 
 # table of content / data processing
 
-Running cell ranger
-Raw fastq files can be downloaded from GEO, https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE162208
+Running cell ranger: Raw fastq files can be downloaded from GEO, https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE162208
 To create a cell ranger reference, see the description of the mkref command here: https://support.10xgenomics.com/single-cell-gene-expression/software/pipelines/latest/advanced/references
+
 We have used a combined hamster/virus fasta/gtf file. For creating and downloading the gtf file, see the https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE162208 (data processing entries describe how the downloadable file ma1_genes_longer.gtf was generated).
 
 Processing cell ranger output: hamster_merging.R contains the code to create the various Seurat objects.
 
 Annotation of lung cell types from tabula muris / Travaglini et al.: lung_hamster_annotation.Rmd
 
-Processing and figures for lung data: hamster_scRNAseq.R contains the basic code to annote the cell types and create the panels in Fig. 1 and Fig. S3. For convenience, the working object ma_int.rds can be downloaded via http://www.mdc-berlin.de/singlecell-SARSCoV2
+Processing and figures for Fig. 1 and Fig. S3: hamster_scRNAseq.R contains the  code to annote the cell types and create the panels in Fig. 1 and Fig. S3. For convenience, the working object ma_int.rds can be downloaded via http://www.mdc-berlin.de/singlecell-SARSCoV2
+
+Pseudobulk analysis: 
+
