@@ -5,10 +5,8 @@ Abstract:
 
 In COVID-19, immune responses are key in determining disease severity. However, cellular mechanisms at the onset of inflammatory lung injury in SARS-CoV-2 infection, particularly involving endothelial cells, remain ill-defined. Using Syrian hamsters as model for moderate COVID-19, we conducted a detailed longitudinal analysis of systemic and pulmonary cellular responses, and corroborated it with datasets from COVID-19 patients. Monocyte-derived macrophages in lungs exerted the earliest and strongest transcriptional response to infection, including induction of pro-inflammatory genes, while epithelial cells showed weak alterations. Without evidence for productive infection, endothelial cells reacted, depending on cell subtypes, by strong and early expression of anti-viral, pro-inflammatory, and T cell recruiting genes. Recruitment of cytotoxic T cells as well as emergence of IgM antibodies preceded viral clearance at day 5 post infection. Investigating SARS-CoV-2 infected Syrian hamsters can thus identify cell type-specific effector functions, provide detailed insights into pathomechanisms of COVID-19, and inform therapeutic strategies.
 
-![Image of Yaktocat](https://octodex.github.com/images/yaktocat.png)
 
-![Infection scheme]
-(https://github.com/Berlin-Hamster-Single-Cell-Consortium/Single-cell-sequencing-of-COVID-19-pathogenesis-in-golden-Hamsters-/blob/main/scheme.jpg)
+![Infection scheme](https://github.com/Berlin-Hamster-Single-Cell-Consortium/Single-cell-sequencing-of-COVID-19-pathogenesis-in-golden-Hamsters-/blob/main/scheme.jpg)
 
 Infection Scheme Figure was created with Biorender.com
 
