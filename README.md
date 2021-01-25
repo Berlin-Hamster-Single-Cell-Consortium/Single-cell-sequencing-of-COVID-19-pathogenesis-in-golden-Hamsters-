@@ -26,12 +26,13 @@ To create a cell ranger reference, see the description of the mkref command here
 We have used a combined hamster/virus fasta/gtf file. For creating and downloading the gtf file, see the https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE162208 (data processing entries describe how the downloadable file ma1_genes_longer.gtf was generated).
 
 # Data analysis in R
-Processing cell ranger output: hamster_merging.R contains the code to create the various Seurat objects. For further processing of the blood sample object (seu_blood_combined_mtfilt_blood500.rds) refer to blood_preprocessing_clustering.R. The lung object (seu_lung_combined_mtfilt.rds), proceed with the integration code in lung_hamster_scRNAseq_integrate.R.
-
+Processing cell ranger output: hamster_merging.R contains the code to create the various Seurat objects. For further processing of the blood sample object (seu_blood_combined_mtfilt_blood500.rds) refer to blood_preprocessing_clustering.R. For the lung object (seu_lung_combined_mtfilt.rds), proceed with the integration code in lung_hamster_scRNAseq_integrate.R.
 
 Annotation of lung cell types from tabula muris / Travaglini et al.: lung_hamster_annotation.Rmd
 
 Processing and figures for Fig. 1 and Fig. S3: hamster_scRNAseq.R contains the code to annote the cell types and create the panels in Fig. 1 and Fig. S3. The Seurat object ma_int.rds can be downloaded via http://www.mdc-berlin.de/singlecell-SARSCoV2. There is also a downsampled data set available (ma_int_red.rds, 3000 cells) for an initial look at the data, however this is not suitable for any statistical analysis due to the small number of cells. 
 
 Pseudobulk analysis: hamster_scRNAseq_pseudobulkDE.R contains the code for the differential expression dotblots in Fig. 3, 4, 5, S5, S7. The Seurat object ma_int.rds as well as the data table pseudobulk.txt and the enrichment tables (KEGG and process) can be downloaded via http://www.mdc-berlin.de/singlecell-SARSCoV2
+
+The combined blood/lung analysis for 2 dpi (Fig. 4C, Fig. S5C) is detailed in lung_hamster_scRNAseq_bloodcomparison_2dpi.R
 
