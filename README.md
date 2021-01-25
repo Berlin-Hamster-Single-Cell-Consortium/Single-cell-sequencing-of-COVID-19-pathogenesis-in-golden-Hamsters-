@@ -26,7 +26,8 @@ To create a cell ranger reference, see the description of the mkref command here
 We have used a combined hamster/virus fasta/gtf file. For creating and downloading the gtf file, see the https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE162208 (data processing entries describe how the downloadable file ma1_genes_longer.gtf was generated).
 
 # Data analysis in R
-Processing cell ranger output: hamster_merging.R contains the code to create the various Seurat objects.
+Processing cell ranger output: hamster_merging.R contains the code to create the various Seurat objects. For further processing of the blood sample object (seu_blood_combined_mtfilt_blood500.rds) refer to blood_preprocessing_clustering.R. The lung object (seu_lung_combined_mtfilt.rds), proceed with the integration code in lung_hamster_scRNAseq_integrate.R.
+
 
 Annotation of lung cell types from tabula muris / Travaglini et al.: lung_hamster_annotation.Rmd
 
