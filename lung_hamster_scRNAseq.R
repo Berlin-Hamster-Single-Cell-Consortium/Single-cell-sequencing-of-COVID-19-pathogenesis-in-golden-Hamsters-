@@ -22,9 +22,10 @@ source("~/Documents/Largescale-data/notes and scripts/summarySE.R")
 
 #For preprocessing:
 #First script hamster_merging.R is run to read in and merge the files after mt filtering
-#Second scintegrate workflow
+#Second scintegrate workflow, as in file lung_hamster_scRNAseq_integrate.R
 #Third Tabula Muris/Travglini cell type annotation (lung_hamster_annotation.Rmd)
 
+#Set various 
 hamster.integrated <- readRDS("./lung_hamster_annotated.rds")
 hamster.integrated$hamster <- gsub("ma_([de][0-5]{1,2})_lung(_[0-5])","\\1\\2",hamster.integrated@meta.data$orig.ident)
 hamster.integrated$infection <- gsub("_[0-5]","",hamster.integrated@meta.data$hamster )
@@ -33,6 +34,8 @@ hamster.integrated@meta.data$SCoV2_sum <- rowSums(SCoV2_rawcounts)
 SCoV2_rawcounts$SCoV2sum <- rowSums(SCoV2_rawcounts)
 hamster.integrated@meta.data$SCoV2_load <- SCoV2_rawcounts$SCoV2sum/hamster.integrated@meta.data$nCount_RNA*100
 hamster.integrated@meta.data = cbind(hamster.integrated@meta.data, hamster.integrated@reductions$umap@cell.embeddings)
+
+#Some initial plots for an overview
 DimPlot(hamster.integrated, label=F, reduction = "umap", group.by = "hamster")
 DimPlot(hamster.integrated, label=F, reduction = "umap", group.by = "infection")
 DimPlot(hamster.integrated, label=F, reduction = "umap", group.by = "orig.ident")
@@ -40,15 +43,12 @@ DimPlot(hamster.integrated, label=T, reduction = "umap", group.by = "seurat_clus
 DefaultAssay(hamster.integrated) <- "SCT"
 UMAPPlot(object=seu_red, do.label = TRUE)
 
-#Blood object
-hamster.integrated <- readRDS("./hamster.integrated_noery_pca_annot_ctype.RDS")
-
 
 #save/read the working object
 hamster.integrated <- readRDS("./ma_int.rds")
 saveRDS(hamster.integrated, "./ma_int.rds")
 
-#Random subsampling to 10000 cells for shiny iSEE
+#Random subsampling to 10000 cells
 seu_red <- subset(hamster.integrated, cells = sample(Cells(hamster.integrated), 10000))
 
 #Basic plots
@@ -100,8 +100,24 @@ ggplot()+
 ggsave("predicted_travaglini.pdf", useDingbats=FALSE)
 
 
+#Make Plot with cluster markers
+cluster_markers <- FindAllMarkers(hamster.integrated, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+write.table(cluster_markers, "lung_celltypes_markers.txt", sep="\t", quote=FALSE, row.names = FALSE)
 
-#Think about which cluster is which celltype, this is the conclusion:
+#To use only d0 for this, do
+cluster_markers_d0 <- FindAllMarkers(subset(hamster.integrated, infection == "d0"), only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+top3 <- cluster_markers_d0 %>% group_by(cluster) %>% top_n(n = 3, wt = avg_logFC)
+
+
+top3 <- cluster_markers %>% group_by(cluster) %>% top_n(n = 3, wt = avg_logFC)
+DotPlot(hamster.integrated, group.by='celltype',
+        features = unique(top3$gene, assay='RNA')) +
+  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=.5))
+ggsave("lung_celltypemarkers_onlyd0.pdf", width=12, height = 8, units="in", useDingbats=FALSE)
+
+
+
+#Final annotation of clusters/cell types, based on the Travaglini et al. and tabula muris predictions
 Idents(hamster.integrated) <- hamster.integrated@meta.data$seurat_clusters
 hamster.integrated <- RenameIdents(hamster.integrated, 
                         '0'='Tcells',
@@ -239,8 +255,7 @@ the_colors = as.vector(unlist(expr))
 
 
 #############
-#Barplot with percentages
-
+#Barplot with percentages of celltypes by timepoint
 
 a = hamster.integrated@meta.data %>% group_by(infection, hamster) %>% tally(name="tot") 
 b = hamster.integrated@meta.data %>% group_by(infection, celltype, hamster) %>% tally(name="pos") 
@@ -263,44 +278,8 @@ ggplot(tgc, aes(x=celltype, y=fraction, fill=paste(celltype, infection, sep="_")
   scale_fill_manual(values=the_colors)
 
 
-
-#Make Plot with cluster markers
-cluster_markers <- FindAllMarkers(hamster.integrated, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
-write.table(cluster_markers, "lung_celltypes_markers.txt", sep="\t", quote=FALSE, row.names = FALSE)
-
-#To use only d0 for this, do
-cluster_markers_d0 <- FindAllMarkers(subset(hamster.integrated, infection == "d0"), only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
-top3 <- cluster_markers_d0 %>% group_by(cluster) %>% top_n(n = 3, wt = avg_logFC)
-
-
-top3 <- cluster_markers %>% group_by(cluster) %>% top_n(n = 3, wt = avg_logFC)
-DotPlot(hamster.integrated, group.by='celltype',
-        features = unique(top3$gene, assay='RNA')) +
-  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=.5))
-ggsave("lung_celltypemarkers_onlyd0.pdf", width=12, height = 8, units="in", useDingbats=FALSE)
-
-
-#Percent positive for a gene in clusters
-gene <- "Ifng"
-df1 <- cbind.data.frame(FetchData(hamster.integrated, gene),
-                        hamster.integrated@meta.data$seurat_clusters,
-                        str_replace_all(gene, "-", "_"),
-                        hamster.integrated@meta.data$celltype)
-colnames(df1) <- c("expression", "cluster", "gene", "celltype")
-a = df1 %>% group_by(cluster) %>% tally(name="tot") 
-b = df1 %>% filter(expression>0) %>% group_by(cluster) %>% tally(name="pos") 
-barplotvalues =
-  left_join(a , b , by = 'cluster') %>% 
-  replace(., is.na(.), 0) %>%
-  mutate(fraction = pos / tot)
-ggplot()+
-  geom_bar(data=barplotvalues, aes(x=cluster, y=fraction), stat="identity")+
-  theme_bw()+
-  theme(axis.ticks=element_blank(), panel.grid.minor=element_blank())+
-  ggtitle(paste("percent positiv", gene, "in", "clusters", sep=" "))
-
-#Percent positive for a gene in celltypes
-#positive for gene in celltype
+#############
+#Barplot with percent positive for a gene in celltypes, and boxplot of expression values for cells with at least 1 UMI for this gene, also write tables for values
 for (gene in c("Cxcl10")) {
   df1 <- cbind.data.frame(FetchData(hamster.integrated, gene), hamster.integrated@meta.data$seurat_clusters, hamster.integrated@meta.data$celltype, str_replace_all(gene, "-", "_"), hamster.integrated@meta.data$SCoV2_load, hamster.integrated@meta.data$infection, hamster.integrated@meta.data$hamster)
   colnames(df1) <- c("expression", "cluster", "celltype", "gene", "load", "day", "hamster")
@@ -312,8 +291,6 @@ for (gene in c("Cxcl10")) {
     replace(., is.na(.), 0) %>%
     mutate(fraction = pos / tot)
   write.table(c, paste("cells", gene, "csv", sep="."), sep=",", quote=FALSE, row.names = FALSE)
-  #%>%
-  #  mutate(celltype = forcats::fct_relevel(celltype, the_celltypes))
   tgc <- summarySE(as.data.frame(c), measurevar="fraction", groupvars=c("day", "celltype"))
   
   ggplot(tgc, aes(x=celltype, y=fraction, fill=paste(celltype, day, sep="_")))+
@@ -323,11 +300,8 @@ for (gene in c("Cxcl10")) {
     theme(axis.ticks=element_blank(), panel.grid.minor=element_blank())+
     ggtitle(paste("fraction positive", gene, "in cell types mean and se of three animals", sep=" "))+
     theme(axis.text.x=element_text(angle=90,hjust=1,vjust=.5))+
-    #scale_fill_manual(values=the_colors)+
     theme(legend.position = "none")
 
-  
-  #  ggsave(paste("Endothelialcells_percposbycelltype_d0d5", gene,  "pdf", sep="."), useDingbats=FALSE)
   ggsave(paste("celltypes_percposbycelltype", gene,  "pdf", sep="."), useDingbats=FALSE)
   ggplot()+
     geom_boxplot(data=subset(df1, expression>0), aes(x=celltype, y=expression, fill=day))+
@@ -340,50 +314,6 @@ for (gene in c("Cxcl10")) {
   ggsave(paste("celltypes_expression_gt0", gene,  "pdf", sep="."), useDingbats=FALSE)
 }
 
-#############################
-#Statistics
-
-
-#Make tables with numbers
-expr <- list()
-for (animal in unique(hamster.integrated@meta.data$orig.ident)) {
-  expr[[animal]] = hamster.integrated@meta.data %>% filter(orig.ident == animal) %>% group_by(celltype) %>% tally()
-  expr[[animal]] = expr[[animal]] %>% add_row(celltype="all", n=sum(expr[[animal]]$n)) %>% add_column(hamster=animal)
-}
-values <- reshape2::melt(do.call(rbind, expr), id.vars=c("hamster", "celltype"))
-values$variable <- NULL
-values <- reshape2::dcast(values, celltype ~ hamster)
-write.table(values, "hamster_celltypes.txt", sep="\t", quote=FALSE, row.names = FALSE)
-
-#Same with adding plus/minus virus information DOES NOT WORK YET
-a <- hamster.integrated@meta.data %>% group_by(orig.ident, celltype) %>% tally() %>% mutate(key=paste(orig.ident, celltype, sep="___"))
-b <- hamster.integrated@meta.data %>% filter(SCoV2_load > 0) %>% group_by(orig.ident, celltype) %>% tally(name="pos")  %>% mutate(key=paste(orig.ident, celltype, sep="___"))
-barplotvalues = left_join(a , b , by = 'key') %>% replace(., is.na(.), 0) %>% mutate(fraction = pos / n)
-
-a = hamster.integrated@meta.data %>% group_by(infection, celltype, hamster) %>% tally(name="tot") 
-b = hamster.integrated@meta.data %>% group_by(infection, celltype, hamster) %>% filter(SCoV2_load>0) %>% tally(name="pos") 
-c =
-  left_join(a , b , by = c('infection', 'celltype', 'hamster')) %>% 
-  replace(., is.na(.), 0) %>%
-  mutate(fraction = pos / tot)
-write.table(c, "celltypes_with_virus.csv", sep=",", quote=FALSE, row.names = FALSE)
-
-a <- hamster.integrated@meta.data %>% group_by(infection, celltype) %>% tally() %>% mutate(key=paste(infection, celltype, sep="___"))
-a$infection <- NULL
-a$celltype <- NULL
-b <- hamster.integrated@meta.data %>% filter(SCoV2_load > 0) %>% group_by(infection, celltype) %>% tally(name="pos")  %>% mutate(key=paste(infection, celltype, sep="___"))
-b$infection <- NULL
-b$celltype <- NULL
-barplotvalues = left_join(a , b , by = 'key') %>% replace(., is.na(.), 0) %>% mutate(fraction = pos / n) %>% separate(key, c("day", "celltype"), sep="___")
-
-ggplot()+
-  geom_bar(data=barplotvalues, aes(x=celltype, y=fraction, fill=day), position=position_dodge2(), stat="identity")+
-  theme_bw()+
-  ggtitle(paste("percent with virus"))+
-  theme(axis.ticks=element_blank(), panel.grid.minor=element_blank())+
-  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=.5))
-
-ggsave("celltype_fraction_with_virus.pdf", useDingbats=FALSE)
 
 ############################
 #smooth dimplots
