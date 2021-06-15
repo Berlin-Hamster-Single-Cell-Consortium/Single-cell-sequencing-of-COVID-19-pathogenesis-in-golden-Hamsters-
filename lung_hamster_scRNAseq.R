@@ -13,10 +13,10 @@ require(gridExtra)
 library(tidyr)
 library("dendextend")
 library(DESeq2)
-source("~/Documents/Largescale-data/notes and scripts/smooth_DimPlot.R")
+source("./smooth_DimPlot.R")
 library(pheatmap)
 #see http://www.cookbook-r.com/Graphs/Plotting_means_and_error_bars_(ggplot2)
-source("~/Documents/Largescale-data/notes and scripts/summarySE.R")
+source("./summarySE.R")
 
 
 
