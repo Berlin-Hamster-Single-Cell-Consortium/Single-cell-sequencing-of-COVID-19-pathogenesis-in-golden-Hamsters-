@@ -18,8 +18,9 @@ library(pheatmap)
 #see http://www.cookbook-r.com/Graphs/Plotting_means_and_error_bars_(ggplot2)
 source("~/Documents/Largescale-data/notes and scripts/summarySE.R")
 
-
-hamster <- <- readRDS("./ma_int.rds")
+##############
+#start out with the annotated object ma_int.rds described in lung_hamster_scRNAseq.R
+hamster <- readRDS("./ma_int.rds")
 Idents(hamster) <- hamster@meta.data$celltype
 
 #################
