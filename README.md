@@ -41,5 +41,5 @@ The combined blood/lung analysis for 2 dpi (Fig. 4C, Fig. S5C) is detailed in lu
 
 For the barplots/boxplots in Fig. 5, the code is in lung_hamster_celltype_genes.R
 
-Analysis of endothelial cells (Fig. 6) can be found in lung_hamster_scRNAseq_endothelial.R
+Analysis of endothelial cells (Fig. 6) can be found in lung_hamster_scRNAseq_endothelial.R, for Fig. 7 (T/NK cells) in lung_hamster_scRNAseq_TNKCells.R
 
