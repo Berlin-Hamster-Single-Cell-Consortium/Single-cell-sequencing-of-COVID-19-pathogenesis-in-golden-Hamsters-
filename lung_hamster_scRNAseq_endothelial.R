@@ -97,7 +97,8 @@ ggsave("Endothelial_celltypemarkers.pdf", width=12, height = 8, units="in", useD
 #Clusters:
 Idents(seu_endo_ma) <- seu_endo_ma@meta.data$seurat_clusters
 
-markers <- c("Ccl7", "Nkg7", "Ccl5", "Klre1", "Cldn5", "Plvap", "Nr2f2", "Bmx", "Pecam1", "Ednrb", "Myc", "Hspg2", "Mpzl2", "Vwa1", "Spry1", "Dkk2", "Ackr1", "Lyve1", "Ccl21")
+markers <- c("Ackr1", "Ccl21", "Cldn5", "Dkk2", "Ednrb", "Pecam1", "Plvap")
+markers1 <- c("Ackr1" = "Ackr1", "Ccl21" = "Ccl21", "Cldn5" = "Cldn5", "Dkk2" = "Dkk2", "Ednrb" = "Ednrb", "Pecam1" = "Pecam1", "Plvap" = "Plvap")
 avg <- AverageExpression(seu_endo_ma, features = markers, return.seurat = T, assays = "SCT") 
 
 DoHeatmap(avg, assay="SCT", size=5, features=markers, draw.lines = F, hjust = 0)+ 
