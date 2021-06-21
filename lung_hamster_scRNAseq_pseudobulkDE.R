@@ -468,9 +468,9 @@ ggplot(KEGG_GO %>%
          dplyr::mutate(term.ID=factor(term.ID,levels=term.order)),
        aes(y=term.description,x=cluster,size=-log10(false.discovery.rate),color=strength)) +
   geom_point() +
-  scale_size_continuous(name='adj. p-value',
-                        breaks=c(5,10,15),
-                        labels=c("1e-5","1e-10", "<1e-15"),
+  scale_size_continuous(name='false discovery rate',
+                        breaks=c(2,4,6),
+                        labels=c("1e-2","1e-4", "<1e-6"),
                         limits=c(0,NA)) +
   scale_color_gradient2(low='blue3',mid='gray',high='red3',
                         limits=c(-2,2),oob=scales::squish) +
