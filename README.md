@@ -12,7 +12,7 @@ Infection Scheme Figure was created with Biorender.com
 
 # table of content / data processing
 
-This repository contains the code that was used create to analyze the data an create the figures in the manuscript available on bioRxiv (https://www.biorxiv.org/content/10.1101/2020.12.18.423524v1). 
+This repository contains the code that was used create to analyze the data an create the figures in the manuscript available on bioRxiv (https://www.biorxiv.org/content/10.1101/2020.12.18.423524v1) and now published in Nature Communications (https://www.nature.com/articles/s41467-021-25030-7). 
 
 # Getting started / installation
 
